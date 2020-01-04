@@ -5,10 +5,11 @@ import { Button, Copyable, Identicon } from '@mycrypto/ui';
 import { translateRaw } from 'v2/translations';
 import { ROUTE_PATHS, Fiats } from 'v2/config';
 import { CollapsibleTable, Network, RowDeleteOverlay, RouterLink } from 'v2/components';
+import { default as EditableText } from 'v2/components/EditableText'; // @TODO solve Circular Dependency issue
 import { default as Typography } from 'v2/components/Typography'; // @TODO solve Circular Dependency issue
 import { truncate } from 'v2/utils';
 import { BREAK_POINTS, COLORS, breakpointToNumber } from 'v2/theme';
-import { ExtendedAccount, AddressBook, StoreAccount } from 'v2/types';
+import { ExtendedAccount, StoreAccount, ExtendedAddressBook } from 'v2/types';
 import {
   AccountContext,
   getLabelByAccount,
@@ -37,7 +38,7 @@ const SIdenticon = styled(Identicon)`
   }
 `;
 
-const STypography = styled(Typography)`
+const SEditableText = styled(EditableText)`
   @media (min-width: ${BREAK_POINTS.SCREEN_SM}) {
     font-weight: inherit;
   }
@@ -174,8 +175,7 @@ function buildAccountTable(
   const { totalFiat } = useContext(StoreContext);
   const { getAssetRate } = useContext(RatesContext);
   const { settings } = useContext(SettingsContext);
-  const { addressBook } = useContext(AddressBookContext);
-
+  const { addressBook, updateAddressBooks, createAddressBooks } = useContext(AddressBookContext);
   const columns = [
     translateRaw('ACCOUNT_LIST_LABEL'),
     translateRaw('ACCOUNT_LIST_ADDRESS'),
@@ -207,13 +207,27 @@ function buildAccountTable(
       ),
     overlayRows,
     body: accounts.map((account, index) => {
-      const addressCard: AddressBook | undefined = getLabelByAccount(account, addressBook);
+      const addressCard: ExtendedAddressBook | undefined = getLabelByAccount(account, addressBook);
       const total = totalFiat([account])(getAssetRate);
       const label = addressCard ? addressCard.label : 'Unknown Account';
       const bodyContent = [
         <Label key={index}>
           <SIdenticon address={account.address} />
-          <STypography bold={true} value={label} />
+          <SEditableText
+            saveValue={value => {
+              if (addressCard) {
+                updateAddressBooks(addressCard.uuid, { ...addressCard, label: value });
+              } else {
+                createAddressBooks({
+                  address: account.address,
+                  label: value,
+                  network: account.networkId,
+                  notes: ''
+                });
+              }
+            }}
+            value={label}
+          />
         </Label>,
         <Copyable key={index} text={account.address} truncate={truncate} isCopyable={copyable} />,
         <Network key={index} color="#a682ff">
