@@ -7,9 +7,9 @@ import {
   CollapsibleTable,
   RowDeleteOverlay,
   Network,
-  Typography
+  EditableText
 } from 'v2/components';
-import { ExtendedAddressBook } from 'v2/types';
+import { ExtendedAddressBook, AddressBook as IAddressBook } from 'v2/types';
 import { truncate } from 'v2/utils';
 import { BREAK_POINTS } from 'v2/theme';
 
@@ -17,6 +17,7 @@ interface Props {
   addressBook: ExtendedAddressBook[];
   toggleFlipped(): void;
   deleteAddressBooks(uuid: string): void;
+  updateAddressBooks(uuid: string, addressBooksData: IAddressBook): void;
 }
 
 const DeleteButton = styled(Button)`
@@ -54,7 +55,7 @@ const SIdenticon = styled(Identicon)`
   }
 `;
 
-const STypography = styled(Typography)`
+const SEditableText = styled(EditableText)`
   @media (min-width: ${BREAK_POINTS.SCREEN_SM}) {
     font-weight: inherit;
   }
@@ -63,7 +64,12 @@ const STypography = styled(Typography)`
 export const screenIsMobileSized = (breakpoint: number): boolean =>
   window.matchMedia(`(max-width: ${breakpoint}px)`).matches;
 
-export default function AddressBook({ addressBook, toggleFlipped, deleteAddressBooks }: Props) {
+export default function AddressBook({
+  addressBook,
+  toggleFlipped,
+  deleteAddressBooks,
+  updateAddressBooks
+}: Props) {
   const [deletingIndex, setDeletingIndex] = useState();
 
   const overlayRows = [deletingIndex];
@@ -85,19 +91,28 @@ export default function AddressBook({ addressBook, toggleFlipped, deleteAddressB
         <></>
       ),
     overlayRows,
-    body: addressBook.map(({ address, label, network, notes }: ExtendedAddressBook, index) => [
-      <Icon key={0} icon="star" />,
-      <Label key={1}>
-        <SIdenticon address={address} />
-        <STypography bold={true} value={label} />
-      </Label>,
-      <Copyable key={2} text={address} truncate={truncate} isCopyable={true} />,
-      <Network key={3} color="#a682ff">
-        {network}
-      </Network>,
-      <Typography key={4} value={notes} />,
-      <DeleteButton key={5} onClick={() => setDeletingIndex(index)} icon="exit" />
-    ]),
+    body: addressBook.map(
+      ({ uuid, address, label, network, notes }: ExtendedAddressBook, index) => [
+        <Icon key={0} icon="star" />,
+        <Label key={1}>
+          <SIdenticon address={address} />
+          <SEditableText
+            value={label}
+            saveValue={value => updateAddressBooks(uuid, { address, label: value, network, notes })}
+          />
+        </Label>,
+        <Copyable key={2} text={address} truncate={truncate} isCopyable={true} />,
+        <Network key={3} color="#a682ff">
+          {network}
+        </Network>,
+        <EditableText
+          key={4}
+          value={notes}
+          saveValue={value => updateAddressBooks(uuid, { address, label, network, notes: value })}
+        />,
+        <DeleteButton key={5} onClick={() => setDeletingIndex(index)} icon="exit" />
+      ]
+    ),
     config: {
       primaryColumn: 'Label',
       sortableColumn: 'Label',
