@@ -115,7 +115,14 @@ export const screenIsMobileSized = (breakpoint: number): boolean =>
   window.matchMedia(`(max-width: ${breakpoint}px)`).matches;
 
 export default function AccountList(props: AccountListProps) {
-  const { accounts: displayAccounts, className, deletable, favoritable, copyable, dashboard } = props;
+  const {
+    accounts: displayAccounts,
+    className,
+    deletable,
+    favoritable,
+    copyable,
+    dashboard
+  } = props;
   const { deleteAccountFromCache } = useContext(StoreContext);
   const { updateAccount } = useContext(AccountContext);
   const [deletingIndex, setDeletingIndex] = useState();
