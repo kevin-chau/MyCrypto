@@ -97,6 +97,7 @@ export default function AddressBook({
         <Label key={1}>
           <SIdenticon address={address} />
           <SEditableText
+            truncate={true}
             value={label}
             saveValue={value => updateAddressBooks(uuid, { address, label: value, network, notes })}
           />

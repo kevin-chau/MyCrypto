@@ -221,6 +221,7 @@ function buildAccountTable(
         <Label key={index}>
           <SIdenticon address={account.address} />
           <SEditableText
+            truncate={true}
             saveValue={value => {
               if (addressCard) {
                 updateAddressBooks(addressCard.uuid, { ...addressCard, label: value });
